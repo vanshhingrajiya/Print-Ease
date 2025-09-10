@@ -1,0 +1,31 @@
+# Database Configuration
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/xeroxshop
+
+# Stripe Payment Configuration
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+
+# Cloudinary Image Upload Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# JWT Authentication Secret
+JWT_SECRET=your_random_jwt_secret_here_make_it_long_and_secure
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# Frontend URLs (for CORS)
+WEB_APP_URL=http://localhost:3000
+MOBILE_APP_URL=http://localhost:19006
+
+# Email Configuration (for notifications)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+
+# Push Notification Configuration
+FCM_SERVER_KEY=your_fcm_server_key_here
+
