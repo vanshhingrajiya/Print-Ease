@@ -101,7 +101,7 @@ const PaymentScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: 'white' },
+  container: { flex: 1, padding: 20, backgroundColor: 'white', marginTop: 40 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 12, color: '#1f2937' },
   subTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 8 },
   text: { fontSize: 16, color: '#374151', marginBottom: 6 },

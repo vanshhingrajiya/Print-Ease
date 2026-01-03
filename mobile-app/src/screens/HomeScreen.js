@@ -110,6 +110,7 @@ const HomeScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 40,
     flex: 1,
     backgroundColor: '#f8fafc',
   },
@@ -179,6 +180,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   shopCard: {
+    // marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',

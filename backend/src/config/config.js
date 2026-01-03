@@ -1,0 +1,12 @@
+const config = {
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/xerox-shop',
+  JWT_SECRET: process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'your_stripe_secret_key_here',
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'your_cloudinary_cloud_name',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || 'your_cloudinary_api_key',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || 'your_cloudinary_api_secret',
+  EMAIL_USER: process.env.EMAIL_USER || 'your_email@gmail.com',
+  EMAIL_PASS: process.env.EMAIL_PASS || 'your_email_password'
+};
+
+export default config;

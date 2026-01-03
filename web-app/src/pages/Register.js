@@ -26,15 +26,16 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
 
-    if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
-      return;
-    }
 
     setLoading(true);
     

@@ -1,0 +1,61 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# env locals
+.env.local
+.env.*.local
+.env.production.local
+
+# build / caches
+.cache
+.parcel-cache
+.turbo
+.vite
+.next
+/.output
+
+# coverage / tests
+coverage/
+jest-test-results.json
+
+# package manager artifacts
+.pnp.*
+.yarn/*
+.pnpm-store
+
+# editor / os
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# secrets / certs
+*.pem
+*.key
+*.crt
+
+# misc
+.eslintcache
+tmp/
