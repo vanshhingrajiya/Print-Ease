@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 import toast from 'react-hot-toast';
 import { MapPin, Clock, Phone, Mail } from 'lucide-react';
 import { MapContainer, TileLayer, Marker as LeafletMarker, useMap, useMapEvents } from 'react-leaflet';
@@ -154,7 +154,7 @@ const ShopSetup = () => {
 
   const fetchShops = async () => {
     try {
-      const response = await axios.get('/api/shops/owner/my-shops');
+      const response = await axios.get('/shops/owner/my-shops');
       const list = response.data || [];
       setShops(list);
       // seed local state for printing, location, upi editors
@@ -210,7 +210,7 @@ const ShopSetup = () => {
         }
       };
 
-      await axios.post('/api/shops', shopData);
+      await axios.post('/shops', shopData);
       toast.success('Shop created successfully!');
       fetchShops();
     } catch (error) {
@@ -232,7 +232,7 @@ const ShopSetup = () => {
   const updateShop = async (shopId, data) => {
     setLoading(true);
     try {
-      await axios.put(`/api/shops/${shopId}`, data);
+      await axios.put(`/shops/${shopId}`, data);
       toast.success('Shop updated successfully!');
       fetchShops();
     } catch (error) {
@@ -246,7 +246,7 @@ const ShopSetup = () => {
   const savePrintingPrices = async (shopId) => {
     try {
       const p = activePrinting[shopId] || {};
-      await axios.put(`/api/shops/${shopId}/printing-services`, {
+      await axios.put(`/shops/${shopId}/printing-services`, {
         printingServices: {
           blackWhite: {
             singleSidedPrice: Number(p.bwSingle || 0),
@@ -272,7 +272,7 @@ const ShopSetup = () => {
         toast.error('Please select a location on map');
         return;
       }
-      await axios.put(`/api/shops/${shopId}/location`, {
+      await axios.put(`/shops/${shopId}/location`, {
         lat: Number(l.lat),
         lng: Number(l.lng),
         address: l.address || ''
@@ -298,7 +298,7 @@ const ShopSetup = () => {
         toast.error('Enter UPI ID first');
         return;
       }
-      const resp = await axios.get(`/api/shops/${shopId}/upi-qr`, { params: { pn: u.displayName || '', am: 1, tn: 'Test' } });
+      const resp = await axios.get(`/shops/${shopId}/upi-qr`, { params: { pn: u.displayName || '', am: 1, tn: 'Test' } });
       setActiveUpi(prev => ({ ...prev, [shopId]: { ...prev[shopId], qrPreview: resp.data?.qrDataUrl || '' } }));
     } catch (e) {
       toast.error('Failed to load QR');

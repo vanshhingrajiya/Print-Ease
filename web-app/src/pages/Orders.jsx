@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 import { 
   Clock, 
   CheckCircle, 
@@ -21,7 +21,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('/api/orders/shop/my-orders');
+      const response = await axios.get('/orders/shop/my-orders');
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -32,7 +32,7 @@ const Orders = () => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      await axios.put(`/api/orders/${orderId}/status`, { status });
+      await axios.put(`/orders/${orderId}/status`, { status });
       fetchOrders();
     } catch (error) {
       console.error('Error updating order status:', error);

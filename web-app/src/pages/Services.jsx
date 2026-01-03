@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const Services = () => {
 
   const fetchShops = async () => {
     try {
-      const response = await axios.get('/api/shops/owner/my-shops');
+      const response = await axios.get('/shops/owner/my-shops');
       setShops(response.data);
       if (response.data.length > 0) {
         setSelectedShop(response.data[0]);
@@ -41,12 +41,12 @@ const Services = () => {
       }
 
       if (editingService) {
-        await axios.put(`/api/shops/${selectedShop._id}/services/${editingService._id}`, formData, {
+        await axios.put(`/shops/${selectedShop._id}/services/${editingService._id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Service updated successfully!');
       } else {
-        await axios.post(`/api/shops/${selectedShop._id}/services`, formData, {
+        await axios.post(`/shops/${selectedShop._id}/services`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Service added successfully!');
@@ -78,7 +78,7 @@ const Services = () => {
     }
 
     try {
-      await axios.delete(`/api/shops/${selectedShop._id}/services/${serviceId}`);
+      await axios.delete(`/shops/${selectedShop._id}/services/${serviceId}`);
       toast.success('Service deleted successfully!');
       fetchShops();
     } catch (error) {

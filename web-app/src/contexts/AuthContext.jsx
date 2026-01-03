@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -18,9 +18,6 @@ export const AuthProvider = ({ children }) => {
 
   // Set up axios defaults
   useEffect(() => {
-    // Set base URL for API calls
-    axios.defaults.baseURL = 'http://localhost:5000';
-    
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -40,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get('/auth/me');
       setUser(response.data.user);
     } catch (error) {
       localStorage.removeItem('token');
@@ -52,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/auth/login', {
+      const response = await axios.post('/auth/login', {
         email,
         password
       });
@@ -74,7 +71,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await axios.post('/auth/register', {
         ...userData,
         role: 'shop_owner'
       });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 import { 
   ShoppingCart, 
   Package, 
@@ -27,7 +27,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch orders
-      const ordersResponse = await axios.get('/api/orders/shop/my-orders');
+      const ordersResponse = await axios.get('/orders/shop/my-orders');
       const orders = ordersResponse.data;
 
       // Calculate stats
