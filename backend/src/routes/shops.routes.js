@@ -17,12 +17,13 @@ router.put('/:id', auth, shopOwnerAuth, controller.updateShop);
 router.get('/owner/my-shops', auth, shopOwnerAuth, controller.getOwnerShops);
 
 // Services
+router.get('/:id/services', controller.getServicesByShop);
 router.post('/:id/services', auth, shopOwnerAuth, withShopUpload, controller.addService);
 router.put('/:id/services/:serviceId', auth, shopOwnerAuth, withShopUpload, controller.updateService);
 router.delete('/:id/services/:serviceId', auth, shopOwnerAuth, controller.deleteService);
 
 // Printing & location
-router.put('/:id/printinwg-services', auth, shopOwnerAuth, controller.updatePrintingServices);
+router.put('/:id/printing-services', auth, shopOwnerAuth, controller.updatePrintingServices);
 router.put('/:id/location', auth, shopOwnerAuth, controller.updateLocation);
 
 export default router;

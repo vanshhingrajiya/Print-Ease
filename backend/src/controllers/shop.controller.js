@@ -1,5 +1,6 @@
 import Shop from '../models/Shop.js';
 import QRCode from 'qrcode';
+import Service from '../models/Service.js';
 
 /* ===== Get all shops ===== */
 export const getAllShops = async (req, res) => {
@@ -150,22 +151,31 @@ export const getOwnerShops = async (req, res) => {
 export const addService = async (req, res) => {
   try {
     const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found' });
+    }
+
     if (shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const service = {
+    const newService = new Service({
       ...req.body,
+      shop: shop._id,
       image: req.file ? req.file.path : undefined
-    };
+    });
 
-    shop.services.push(service);
-    await shop.save();
+    await newService.save();
 
-    res.status(201).json({ message: 'Service added successfully', service });
+    res.status(201).json({
+      message: 'Service added successfully',
+      service: newService
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
@@ -173,22 +183,40 @@ export const addService = async (req, res) => {
 export const updateService = async (req, res) => {
   try {
     const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found' });
+    }
+
     if (shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const service = shop.services.id(req.params.serviceId);
-    if (!service) return res.status(404).json({ message: 'Service not found' });
+    const service = await Service.findOne({
+      _id: req.params.serviceId,
+      shop: shop._id
+    });
+
+    if (!service) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
 
     Object.assign(service, req.body);
-    if (req.file) service.image = req.file.path;
 
-    await shop.save();
+    if (req.file) {
+      service.image = req.file.path;
+    }
 
-    res.json({ message: 'Service updated successfully', service });
+    await service.save();
+
+    res.json({
+      message: 'Service updated successfully',
+      service
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
@@ -196,17 +224,29 @@ export const updateService = async (req, res) => {
 export const deleteService = async (req, res) => {
   try {
     const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: 'Shop not found' });
+    if (!shop) {
+      return res.status(404).json({ message: 'Shop not found' });
+    }
+
     if (shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    shop.services.id(req.params.serviceId).deleteOne();
-    await shop.save();
+    const service = await Service.findOneAndDelete({
+      _id: req.params.serviceId,
+      shop: shop._id
+    });
+
+    if (!service) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
 
     res.json({ message: 'Service deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
@@ -244,5 +284,15 @@ export const updateLocation = async (req, res) => {
     res.json({ message: 'Location updated successfully', shop });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+/* ===== Get services by shop ===== */
+export const getServicesByShop = async (req, res) => {
+  try {
+    const services = await Service.find({ shop: req.params.id });
+    res.json(services);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 };

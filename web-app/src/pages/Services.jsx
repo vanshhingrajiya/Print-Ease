@@ -1,16 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from '../api/axiosInstance';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 
-const Services = () => {
+import { getMyShops } from '../services/shop.service';
+import {
+  getServicesByShop,
+  addService,
+  updateService,
+  deleteService
+} from '../services/service.service';
+
+/* ---------- Shared styles (same as ShopSetup) ---------- */
+
+const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+const inputClass =
+  'w-full px-3 py-2 border border-gray-300 rounded-md bg-white ' +
+  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+
+/* ---------- Component ---------- */
+
+export default function Services() {
   const [shops, setShops] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [services, setServices] = useState([]);
+
+  const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors }
+  } = useForm();
+
+  /* ---------- Initial load ---------- */
 
   useEffect(() => {
     fetchShops();
@@ -18,111 +45,145 @@ const Services = () => {
 
   const fetchShops = async () => {
     try {
-      const response = await axios.get('/shops/owner/my-shops');
-      setShops(response.data);
-      if (response.data.length > 0) {
-        setSelectedShop(response.data[0]);
+      const res = await getMyShops();
+      setShops(res.data);
+
+      if (res.data.length > 0) {
+        setSelectedShop(res.data[0]);
       }
-    } catch (error) {
-      console.error('Error fetching shops:', error);
+    } catch {
+      toast.error('Failed to load shops');
     }
   };
 
+  /* ---------- Load services when shop changes ---------- */
+
+  useEffect(() => {
+    if (selectedShop?._id) {
+      fetchServices(selectedShop._id);
+    }
+  }, [selectedShop]);
+
+  const fetchServices = async (shopId) => {
+    try {
+      const res = await getServicesByShop(shopId);
+      setServices(res.data);
+    } catch {
+      toast.error('Failed to load services');
+    }
+  };
+
+  /* ---------- Submit ---------- */
+
   const onSubmit = async (data) => {
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append('name', data.name);
-      formData.append('description', data.description);
+      formData.append('description', data.description || '');
       formData.append('price', data.price);
       formData.append('unit', data.unit);
-      if (data.image && data.image[0]) {
+      formData.append('category', data.category);
+
+      if (data.image?.[0]) {
         formData.append('image', data.image[0]);
       }
 
       if (editingService) {
-        await axios.put(`/shops/${selectedShop._id}/services/${editingService._id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        toast.success('Service updated successfully!');
+        await updateService(
+          selectedShop._id,
+          editingService._id,
+          formData
+        );
+        toast.success('Service updated successfully');
       } else {
-        await axios.post(`/shops/${selectedShop._id}/services`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        toast.success('Service added successfully!');
+        await addService(selectedShop._id, formData);
+        toast.success('Service added successfully');
       }
-      
-      fetchShops();
+
       reset();
-      setShowAddForm(false);
+      setShowForm(false);
       setEditingService(null);
-    } catch (error) {
+      fetchServices(selectedShop._id);
+    } catch {
       toast.error('Failed to save service');
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------- Edit ---------- */
+
   const handleEdit = (service) => {
     setEditingService(service);
+
     setValue('name', service.name);
     setValue('description', service.description);
     setValue('price', service.price);
     setValue('unit', service.unit);
-    setShowAddForm(true);
+    setValue('category', service.category || 'other');
+
+    setShowForm(true);
   };
 
+  /* ---------- Delete ---------- */
+
   const handleDelete = async (serviceId) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) {
-      return;
-    }
+    if (!window.confirm('Delete this service?')) return;
 
     try {
-      await axios.delete(`/shops/${selectedShop._id}/services/${serviceId}`);
-      toast.success('Service deleted successfully!');
-      fetchShops();
-    } catch (error) {
+      await deleteService(selectedShop._id, serviceId);
+      toast.success('Service deleted');
+      fetchServices(selectedShop._id);
+    } catch {
       toast.error('Failed to delete service');
     }
   };
 
-  const cancelEdit = () => {
-    setShowAddForm(false);
-    setEditingService(null);
+  const cancelForm = () => {
     reset();
+    setEditingService(null);
+    setShowForm(false);
   };
+
+  /* ---------- UI ---------- */
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Services Management</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your shop's services and pricing.
+          <h1 className="text-2xl font-bold text-gray-900">
+            Services Management
+          </h1>
+          <p className="text-sm text-gray-500">
+            Manage additional services offered by your shop.
           </p>
         </div>
+
         <button
-          onClick={() => setShowAddForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus size={16} />
           Add Service
         </button>
       </div>
 
-      {/* Shop Selection */}
+      {/* Shop Selector */}
       {shops.length > 1 && (
-        <div className="bg-white shadow rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Shop
-          </label>
+        <div className="bg-white border rounded p-4">
+          <label className={labelClass}>Select Shop</label>
           <select
             value={selectedShop?._id || ''}
-            onChange={(e) => {
-              const shop = shops.find(s => s._id === e.target.value);
-              setSelectedShop(shop);
-            }}
-            className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            onChange={(e) =>
+              setSelectedShop(
+                shops.find((s) => s._id === e.target.value)
+              )
+            }
+            className={inputClass}
           >
             {shops.map((shop) => (
               <option key={shop._id} value={shop._id}>
@@ -133,102 +194,95 @@ const Services = () => {
         </div>
       )}
 
-      {/* Add/Edit Service Form */}
-      {showAddForm && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingService ? 'Edit Service' : 'Add New Service'}
+      {/* Add / Edit Form */}
+      {showForm && (
+        <div className="bg-white border rounded p-6 space-y-4">
+          <h2 className="text-lg font-semibold">
+            {editingService ? 'Edit Service' : 'Add Service'}
           </h2>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Service Name
-                </label>
-                <input
-                  {...register('name', { required: 'Service name is required' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="e.g., B&W Print, Color Print, Binding"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Price (₹)
-                </label>
-                <input
-                  {...register('price', { 
-                    required: 'Price is required',
-                    min: { value: 0, message: 'Price must be positive' }
-                  })}
-                  type="number"
-                  step="0.01"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="0.00"
-                />
-                {errors.price && (
-                  <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
-                )}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+            <div>
+              <label className={labelClass}>Service Name *</label>
+              <input
+                {...register('name', { required: true })}
+                className={inputClass}
+              />
+              {errors.name && (
+                <p className="text-sm text-red-600">Required</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
+              <label className={labelClass}>Description</label>
               <textarea
-                {...register('description')}
                 rows={3}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Describe the service"
+                {...register('description')}
+                className={inputClass}
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Unit
-                </label>
+                <label className={labelClass}>Price (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  {...register('price', { required: true })}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Unit *</label>
                 <select
-                  {...register('unit', { required: 'Unit is required' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  {...register('unit', { required: true })}
+                  className={inputClass}
                 >
                   <option value="per_page">Per Page</option>
                   <option value="per_copy">Per Copy</option>
                   <option value="per_document">Per Document</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Service Image
-                </label>
-                <input
-                  {...register('image')}
-                  type="file"
-                  accept="image/*"
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                />
-              </div>
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div>
+              <label className={labelClass}>Category *</label>
+              <select
+                {...register('category', { required: true })}
+                className={inputClass}
+              >
+                <option value="other">Other Service</option>
+                <option value="printing">Printing (Non-Xerox)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                {...register('image')}
+                className="text-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={cancelEdit}
-                className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                onClick={cancelForm}
+                className="px-4 py-2 border rounded"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
               >
-                {loading ? 'Saving...' : (editingService ? 'Update Service' : 'Add Service')}
+                {loading ? 'Saving...' : 'Save'}
               </button>
             </div>
           </form>
@@ -236,61 +290,54 @@ const Services = () => {
       )}
 
       {/* Services List */}
-      {selectedShop && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
-              Services for {selectedShop.shopName}
-            </h3>
+      <div className="bg-white border rounded">
+        {services.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <Package className="mx-auto mb-2" />
+            No services added yet
           </div>
-          <div className="divide-y divide-gray-200">
-            {selectedShop.services?.length === 0 ? (
-              <div className="px-6 py-8 text-center">
-                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No services</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by adding your first service.
+        ) : (
+          services.map((service) => (
+            <div
+              key={service._id}
+              className="p-4 border-b flex justify-between items-start"
+            >
+              <div>
+                <h4 className="font-medium">{service.name}</h4>
+                <p className="text-sm text-gray-500">
+                  ₹{service.price} / {service.unit.replace('_', ' ')}
                 </p>
+                <p className="text-xs text-gray-400">
+                  {service.category === 'printing'
+                    ? 'Printing Service'
+                    : 'Other Service'}
+                </p>
+                {service.description && (
+                  <p className="text-sm mt-1 text-gray-600">
+                    {service.description}
+                  </p>
+                )}
               </div>
-            ) : (
-              selectedShop.services?.map((service) => (
-                <div key={service._id} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <h4 className="text-sm font-medium text-gray-900">{service.name}</h4>
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          ₹{service.price} / {service.unit.replace('_', ' ')}
-                        </span>
-                      </div>
-                      {service.description && (
-                        <p className="mt-1 text-sm text-gray-500">{service.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(service)}
-                        className="text-primary-600 hover:text-primary-900"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(service._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleEdit(service)}
+                  className="text-blue-600"
+                >
+                  <Edit size={16} />
+                </button>
+
+                <button
+                  onClick={() => handleDelete(service._id)}
+                  className="text-red-600"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
-};
-
-export default Services;
-
+}
