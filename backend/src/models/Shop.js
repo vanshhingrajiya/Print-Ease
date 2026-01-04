@@ -6,6 +6,10 @@ const shopSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  ownerName: {
+    type: String,
+    required: true
+  },
   shopName: {
     type: String,
     required: true
@@ -14,6 +18,7 @@ const shopSchema = new mongoose.Schema({
     type: String
   },
   address: {
+    shopNumber: String,
     street: String,
     city: String,
     state: String,
@@ -41,27 +46,6 @@ const shopSchema = new mongoose.Schema({
     displayName: { type: String, default: '' }, // shown in UPI apps
     qrImageUrl: { type: String, default: '' } // optional uploaded/static QR image
   },
-  services: [{
-    name: {
-      type: String,
-      required: true
-    },
-    description: String,
-    price: {
-      type: Number,
-      required: true
-    },
-    unit: {
-      type: String,
-      enum: ['per_page', 'per_copy', 'per_document'],
-      default: 'per_page'
-    },
-    image: String,
-    isAvailable: {
-      type: Boolean,
-      default: true
-    }
-  }],
   workingHours: {
     monday: { open: String, close: String, isOpen: Boolean },
     tuesday: { open: String, close: String, isOpen: Boolean },
